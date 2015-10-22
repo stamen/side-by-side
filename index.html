@@ -1,0 +1,124 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <!--
+    This file is licenced CC0 http://creativecommons.org/publicdomain/zero/1.0/
+  -->
+  <head>
+    <meta http-equiv="Content-type" content="text/html;charset=UTF-8" />
+    <title>Leaflet Maps Side by Side</title>
+    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.1/leaflet.css" type="text/css" />
+    <style type="text/css">
+        body {
+            margin: 0;
+            font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+        }
+
+        /* set the two maps side by side */
+        #mapA {
+            width: 50%;
+            height: 100%;
+        }
+
+        #mapB {
+            width: 50%;
+            height: 100%;
+            left: 50%;
+            top: 0;
+            position: absolute;
+        }
+
+    </style>
+    <script src="http://cdn.leafletjs.com/leaflet-0.7.1/leaflet-src.js" type="text/javascript"></script>
+    <script src="https://cdn.rawgit.com/turban/Leaflet.Sync/master/L.Map.Sync.js" type="text/javascript"></script>
+    <script src="zepto.min.js" type="text/javascript"></script>
+    <script src="leaflet-hash.js" type="text/javascript"></script>
+    <script src="l.control.ActiveLayers.js" type="text/javascript"></script>
+    <script src="l.control.SelectLayers.js" type="text/javascript"></script>
+    <link rel="stylesheet" href="l.control.SelectLayers.css" type="text/css" />
+    <script src="l.control.geosearch.js" type="text/javascript"></script>
+    <script src="l.geosearch.provider.nominatim.js" type="text/javascript"></script>
+    <link rel="stylesheet" href="l.geosearch.css" type="text/css" />
+    <script src="sources.js" type="text/javascript"></script>
+    <script type="text/javascript">
+var mapA;
+var mapB;
+window.onload = function init(){
+  // predefined map layers
+
+  var layerParams = {
+      attribution: '(attribution goes here)',
+      maxZoom: 18
+    };
+
+  var panes = ['A', 'B'];
+
+  layers = {};
+
+  panes.forEach(function(pane) {
+    layers[pane] = new Array();
+    for (source in sources) {
+      if (sources.hasOwnProperty(source)) {
+        layers[pane][sources[source].name] = new L.TileLayer(sources[source].url, layerParams);
+      }
+    }
+  });
+
+  var mapADefaultLayer = layers['A'][default_A];
+  var mapBDefaultLayer = layers['B'][default_B];
+
+  // make the map objects
+
+  var startLocation = new L.LatLng(0,0);
+
+  var startZoom = 2;
+
+  if (!location.hash) {
+    location.hash = "#2/0/0";
+  } else {
+    var hash = location.hash.split("/");
+    startLocation = new L.LatLng(hash[1],hash[2]);
+    startZoom = hash[0].split("#")[1];
+  }
+  console.log(startLocation,startZoom);
+
+  mapA = new L.Map('mapA',
+    {
+      center: startLocation,
+      zoom: startZoom,
+      layers: [mapADefaultLayer]
+    });
+  mapB = new L.Map('mapB',
+    {
+      center: startLocation,
+      zoom: startZoom,
+      layers: [mapBDefaultLayer],
+      zoomControl: false
+    });
+  var legendA = L.control.selectLayers(layers['A'], [], {collapsed: false});
+  var legendB = L.control.selectLayers(layers['B'], [], {collapsed: false});
+
+  legendA.addTo(mapA);
+  legendB.addTo(mapB);
+
+  var hash = new L.Hash(mapA);
+
+  console.log("hash", hash);
+
+
+  new L.Control.GeoSearch({
+    provider: new L.GeoSearch.Provider.Nominatim(),
+    showMarker: false
+  }).addTo(mapA);
+
+
+  console.log("syncing")
+  mapA.sync(mapB);
+  mapB.sync(mapA);
+
+}
+    </script>
+  </head>
+  <body id="body">
+    <div id="mapA"></div>
+    <div id="mapB"></div>
+  </body>
+</html>
