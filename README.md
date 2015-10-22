@@ -6,6 +6,8 @@ Yet another side-by-side Leaflet viewer.
 
 1. Add your own XYZ url templates in `sources.js`. Done!
 
+![screenshot](screenshot.png)
+
 ## Credits:
 
 Borrowed from [Andrew Harvey's](http://tianjara.net) gist [here](https://gist.github.com/andrewharvey/1194714) and his [live demo](http://tianjara.net/leaflet-side-by-side.html).
