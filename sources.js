@@ -1,7 +1,11 @@
-var default_A = 'Stamen Toner';
-var default_B = 'CartoDB Positron';
+var default_A = 'Stamen Terrain';
+var default_B = 'Terrain Classic (local)';
 
 var sources = {
+  localterrain: {
+    name: "Terrain Classic (local)",
+    url: "http://localhost:8080/{z}/{x}/{y}.png"
+  },
   google: {
     name: "Google Maps",
     url: "http://sm.mapstack.stamen.com/google_refreshed/{z}/{x}/{y}.png"
