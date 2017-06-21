@@ -1,5 +1,5 @@
-var default_A = 'Stamen Toner';
-var default_B = 'CartoDB Positron';
+var mapACurrentKey = 'toner';
+var mapBCurrentKey = 'positron';
 
 var sources = {
   google: {
@@ -12,14 +12,14 @@ var sources = {
   },
   toner: {
     name: "Stamen Toner",
-    url: "http://{s}.tile.stamen.com/toner/{z}/{x}/{y}.png"
+    url: "http://{s}.tile.stamen.com/toner/{z}/{x}/{y}" + (L.Browser.retina ? '@2x' : '') + ".png"
   },
   terrain: {
     name: "Stamen Terrain",
-    url: "http://{s}.tile.stamen.com/terrain/{z}/{x}/{y}.png"
+    url: "http://{s}.tile.stamen.com/terrain/{z}/{x}/{y}" + (L.Browser.retina ? '@2x' : '') + ".png"
   },
   positron: {
     name: "CartoDB Positron",
-    url: "http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png"
+    url: "http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}" + (L.Browser.retina ? '@2x' : '') + ".png"
   }
 }

@@ -46,8 +46,15 @@ window.onload = function init(){
 
   var layerParams = {
       attribution: '(attribution goes here)',
+      //detectRetina: true, //No, this is fake retina
       maxZoom: 18
     };
+
+  // create a reverse lookup to go from layer names back to keys
+  var nameToKey = {};
+  Object.keys(sources).forEach(function(key) {
+    nameToKey[sources[key].name] = key;
+  });
 
   var panes = ['A', 'B'];
 
@@ -55,24 +62,49 @@ window.onload = function init(){
 
   panes.forEach(function(pane) {
     layers[pane] = new Array();
-    for (source in sources) {
+    var keys = Object.keys(sources);
+    keys.forEach(function(source) {
       if (sources.hasOwnProperty(source)) {
+        //layers[pane][source] = new L.TileLayer(sources[source].url, layerParams);
         layers[pane][sources[source].name] = new L.TileLayer(sources[source].url, layerParams);
+      }
+    });
+  });
+
+  // The layer selections if the URL doesn't include them.
+  var mapACurrentLayer = layers['A'][sources[mapACurrentKey].name];
+  var mapBCurrentLayer = layers['B'][sources[mapBCurrentKey].name];
+
+  // Parse query parameters:
+  var search_values = location.search.replace('\?','').split('&');
+  search_values.forEach(function(param) {
+    key_value = param.split("=");
+    if (key_value.length == 2) { // skip if it doesn't parse well
+      if (key_value[0] == "left" && key_value[1].match(/^\w+$/)) { // make sure no weird characters
+        if (sources.hasOwnProperty(key_value[1])) {
+          mapACurrentKey = key_value[1];
+          mapACurrentLayer = layers['A'][sources[mapACurrentKey].name];
+        }
+      }
+      if (key_value[0] == "right" && key_value[1].match(/^\w+$/)) { // make sure no weird characters
+        if (sources.hasOwnProperty(key_value[1])) {
+          mapBCurrentKey = key_value[1];
+          mapBCurrentLayer = layers['B'][sources[mapBCurrentKey].name];
+        }
       }
     }
   });
 
-  var mapADefaultLayer = layers['A'][default_A];
-  var mapBDefaultLayer = layers['B'][default_B];
-
   // make the map objects
 
-  var startLocation = new L.LatLng(0,0);
+  var lat = 0;
+  var lng = 0;
+  var startLocation = new L.LatLng(lat,lng);
 
   var startZoom = 2;
 
   if (!location.hash) {
-    location.hash = "#2/0/0";
+    location.hash = "#" + startZoom + "/" + lat + "/" + lng;
   } else {
     var hash = location.hash.split("/");
     startLocation = new L.LatLng(hash[1],hash[2]);
@@ -84,17 +116,40 @@ window.onload = function init(){
     {
       center: startLocation,
       zoom: startZoom,
-      layers: [mapADefaultLayer]
+      layers: [mapACurrentLayer]
     });
   mapB = new L.Map('mapB',
     {
       center: startLocation,
       zoom: startZoom,
-      layers: [mapBDefaultLayer],
+      layers: [mapBCurrentLayer],
       zoomControl: false
     });
   var legendA = L.control.selectLayers(layers['A'], [], {collapsed: false});
   var legendB = L.control.selectLayers(layers['B'], [], {collapsed: false});
+
+  function updateHash() {
+    var location_string = location.href;
+    if (location_string.match("\\?")) // means there's already a search query
+      history.pushState({},null,location_string.replace(/\?.*\#/,"?left=" + mapACurrentKey + "&right=" + mapBCurrentKey + "#"));
+    else
+      history.pushState({},null,location_string.replace(/^.*\#/,"?left=" + mapACurrentKey + "&right=" + mapBCurrentKey + "#"));
+  }
+
+  mapA.on('baselayerchange', function(e) {
+    if (e.name && nameToKey[e.name]) {
+      mapACurrentKey = nameToKey[e.name];
+      mapACurrentLayer = layers['A'][sources[mapACurrentKey].name];
+      updateHash();
+    }
+  });
+  mapB.on('baselayerchange', function(e) {
+    if (e.name && nameToKey[e.name]) {
+      mapBCurrentKey = nameToKey[e.name];
+      mapBCurrentLayer = layers['B'][sources[mapBCurrentKey].name];
+      updateHash();
+    }
+  });
 
   legendA.addTo(mapA);
   legendB.addTo(mapB);
